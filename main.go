@@ -29,6 +29,7 @@ func main() {
 	}
 
 	db := DBConn(config.DataDir)
+	defer db.Close()
 
 	mAcct := config.RedditAccounts[0]
 	mSession, err := geddit.NewLoginSession(
@@ -63,7 +64,7 @@ func main() {
 		}
 	}
 
-	options := geddit.ListingOptions{Limit: 100}
+	options := geddit.ListingOptions{Limit: 30}
 
 	var submissions []*geddit.Submission
 	submissions, err = mSession.SubredditSubmissions(config.Subreddit, geddit.DefaultPopularity, options)
