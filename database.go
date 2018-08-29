@@ -1,9 +1,9 @@
 package main
 
 import (
-			"os"
-		"github.com/boltdb/bolt"
+	"github.com/boltdb/bolt"
 	"log"
+	"os"
 )
 
 type Database struct {
@@ -15,8 +15,8 @@ type Record struct {
 	DateCreated string
 }
 
-func DBConn(datadir string) (*Database) {
-	db, err := bolt.Open(datadir + "/my.db", 0600, nil)
+func DBConn(datadir string) *Database {
+	db, err := bolt.Open(datadir+"/my.db", 0600, nil)
 	if err != nil {
 		log.Printf("[x] error opening DB: %s", err)
 		os.Exit(1)
@@ -49,7 +49,7 @@ func (d *Database) ContainsDownvote(redditAcct string, permalink string) bool {
 //AddDownvote puts a record in the DB for the given reddit account and permalink.
 func (d *Database) AddDownvote(redditAcct string, permalink string) {
 	err := d.db.Update(func(tx *bolt.Tx) error {
-		b, err:= tx.CreateBucketIfNotExists([]byte(redditAcct))
+		b, err := tx.CreateBucketIfNotExists([]byte(redditAcct))
 		if err != nil {
 			log.Printf("[x] error creating bucket: %s", err)
 			return err

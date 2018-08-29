@@ -5,7 +5,7 @@ import (
 	"github.com/jzelinskie/geddit"
 	"log"
 	"os"
-		)
+)
 
 const userAgent = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15`
 
@@ -45,38 +45,42 @@ func main() {
 	aComments := make([]*geddit.Comment, 0)
 	aSubmissions := make([]*geddit.Submission, 0)
 
-	var comments []*geddit.Comment
-	comments, err = mSession.SubredditComments(config.Subreddit)
-	if err != nil {
-		log.Printf("[x] error reading comments: %s\n", err)
-	}
+	for _, subreddit := range config.Subreddits {
+		var comments []*geddit.Comment
+		comments, err = mSession.SubredditComments(subreddit)
+		if err != nil {
+			log.Printf("[x] error reading comments: %s\n", err)
+		}
 
-	log.Printf("[*] got a total of %d comments to examine\n", len(comments))
+		log.Printf("[*] got a total of %d comments to check from /r/%s\n", len(comments), subreddit)
 
-	for _, comment := range comments {
-		for i := 0; i < len(config.Users); i++ {
-			userName := config.Users[i]
-			if comment.Author == userName {
-				aComments = append(aComments, comment)
-				log.Printf("[*] added comment from %s to the queue\n", userName)
-				break
+		for _, comment := range comments {
+			for i := 0; i < len(config.Users); i++ {
+				userName := config.Users[i]
+				if comment.Author == userName {
+					aComments = append(aComments, comment)
+					log.Printf("[*] added comment in /r/%s from %s to the examine queue\n", subreddit, userName)
+					break
+				}
 			}
 		}
 	}
 
-	options := geddit.ListingOptions{Limit: 30}
+	options := geddit.ListingOptions{Limit: config.Limit}
 
-	var submissions []*geddit.Submission
-	submissions, err = mSession.SubredditSubmissions(config.Subreddit, geddit.DefaultPopularity, options)
+	for _, subreddit := range config.Subreddits {
+		var submissions []*geddit.Submission
+		submissions, err = mSession.SubredditSubmissions(subreddit, geddit.DefaultPopularity, options)
 
-	log.Printf("[*] got a total of %d submissions to examine\n", len(submissions))
-	for _, submission := range submissions {
-		for i := 0; i < len(config.Users); i++ {
-			userName := config.Users[i]
-			if submission.Author == userName {
-				aSubmissions = append(aSubmissions, submission)
-				log.Printf("[*] added submission from %s to the queue\n", userName)
-				break
+		log.Printf("[*] got a total of %d submissions from /r/%s to check\n", len(submissions), subreddit)
+		for _, submission := range submissions {
+			for i := 0; i < len(config.Users); i++ {
+				userName := config.Users[i]
+				if submission.Author == userName {
+					aSubmissions = append(aSubmissions, submission)
+					log.Printf("[*] added submission in /r/%s from %s to the examine queue\n", subreddit, userName)
+					break
+				}
 			}
 		}
 	}
@@ -89,6 +93,8 @@ func main() {
 }
 
 func massDownvoteComments(config *Config, comments []*geddit.Comment, mSession *geddit.LoginSession, db *Database) {
+	log.Println("[*] running comment downvote routine")
+
 	downvoteComments(config.RedditAccounts[0].User, mSession, comments, db)
 
 	for j := 1; j < len(config.RedditAccounts); j++ {
@@ -112,6 +118,8 @@ func massDownvoteComments(config *Config, comments []*geddit.Comment, mSession *
 }
 
 func massDownvoteSubmissions(config *Config, submissions []*geddit.Submission, mSession *geddit.LoginSession, db *Database) {
+	log.Println("[*] running submission downvote routine")
+
 	downvoteSubmissions(config.RedditAccounts[0].User, mSession, submissions, db)
 
 	for j := 1; j < len(config.RedditAccounts); j++ {

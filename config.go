@@ -11,10 +11,11 @@ type RedditAccount struct {
 }
 
 type Config struct {
-	DataDir        string           `json:"datadir"`
-	Subreddit      string           `json: "subreddit"`
-	Users          []string         `json: "users"`
-	RedditAccounts []*RedditAccount `json: "redditAccounts"`
+	DataDir        string           `json:"datadir"`         //directory containing database
+	Subreddits     []string         `json: "subreddits"`     //list of subreddits to scan
+	Limit          int              `json: "limit"`          //limit the number of posts to retrieve
+	Users          []string         `json: "users"`          //list of users to target
+	RedditAccounts []*RedditAccount `json: "redditAccounts"` //reddit accounts to log in and vote with
 }
 
 //NewConfig creates a new instance of Config.
