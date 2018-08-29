@@ -11,6 +11,7 @@ type RedditAccount struct {
 }
 
 type Config struct {
+	DataDir        string           `json:"datadir"`
 	Subreddit      string           `json: "subreddit"`
 	Users          []string         `json: "users"`
 	RedditAccounts []*RedditAccount `json: "redditAccounts"`
