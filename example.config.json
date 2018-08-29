@@ -1,0 +1,5 @@
+{
+	"nick":"yourtwitchuser",
+	"oauth":"oauth:keyfromtwitch",
+	"channel":"chattojoin"
+}
