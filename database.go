@@ -28,7 +28,7 @@ func DBConn(datadir string) (*Database) {
 //ContainsDownvote checks the database if there is a downvote for the given permalink on the given account.
 func (d *Database) ContainsDownvote(redditAcct string, permalink string) bool {
 	found := false
-	err := d.db.View(func(tx *bolt.Tx) error {
+	err := d.db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(redditAcct))
 		if err != nil {
 			log.Printf("[x] error creating DB bucket: %s", err)
