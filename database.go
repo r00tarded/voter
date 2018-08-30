@@ -11,10 +11,6 @@ type Database struct {
 	db      *bolt.DB
 }
 
-type Record struct {
-	DateCreated string
-}
-
 func DBConn(datadir string) *Database {
 	db, err := bolt.Open(datadir+"/my.db", 0600, nil)
 	if err != nil {
