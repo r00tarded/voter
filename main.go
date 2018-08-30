@@ -13,6 +13,8 @@ const userAgent = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/6
 
 var (
 	oVerbose bool
+	oUpvoteAll bool
+	oDownvoteAll bool
 	oConfig string
 )
 
@@ -20,6 +22,8 @@ func init() {
 	rand.Seed(time.Now().Unix())
 	flag.StringVar(&oConfig, "c", "", "config file")
 	flag.BoolVar(&oVerbose, "v", false, "enable verbose mode")
+	flag.BoolVar(&oUpvoteAll, "ua", false, "upvote everything found in scan")
+	flag.BoolVar(&oDownvoteAll, "da", false, "downvote everything found in scan")
 	flag.Parse()
 }
 
@@ -66,6 +70,16 @@ func main() {
 			log.Printf("[x] error reading comments: %s\n", err)
 		}
 
+		if oUpvoteAll {
+			log.Printf("[*] adding all comments from %s to upvote queue", subreddit)
+			uComments = append(uComments, comments...)
+			continue
+		} else if oDownvoteAll {
+			log.Printf("[*] adding all comments from %s to downvote queue", subreddit)
+			dComments = append(dComments, comments...)
+			continue
+		}
+
 		if oVerbose {
 			log.Printf("[*] got a total of %d comments to check from /r/%s\n", len(comments), subreddit)
 		}
@@ -99,6 +113,16 @@ func main() {
 	for _, subreddit := range config.Subreddits {
 		var submissions []*geddit.Submission
 		submissions, err = mSession.SubredditSubmissions(subreddit, geddit.DefaultPopularity, options)
+
+		if oUpvoteAll {
+			log.Printf("[*] adding all submissions from %s to upvote queue\n", subreddit)
+			uSubmissions = append(uSubmissions, submissions...)
+			continue
+		} else if oDownvoteAll {
+			log.Printf("[*] adding all submissions from %s to downvote queue\n", subreddit)
+			dSubmissions = append(dSubmissions, submissions...)
+			continue
+		}
 
 		if oVerbose {
 			log.Printf("[*] got a total of %d submissions from /r/%s to check\n", len(submissions), subreddit)
