@@ -207,6 +207,7 @@ func voteSubmissions(user string, session *geddit.LoginSession, dSubmissions []*
 		if !db.ContainsUpvote(user, submission.Permalink) {
 			session.Vote(submission, geddit.UpVote)
 			log.Printf("[+] %s upvoted %s's submission: %s\n", user, submission.Author, submission.FullPermalink())
+			db.AddUpvote(user, submission.Permalink)
 		}
 	}
 }
