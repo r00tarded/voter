@@ -14,7 +14,8 @@ type Config struct {
 	DataDir        string           `json:"datadir"`         //directory containing database
 	Subreddits     []string         `json: "subreddits"`     //list of subreddits to scan
 	Limit          int              `json: "limit"`          //limit the number of posts to retrieve
-	Users          []string         `json: "users"`          //list of users to target
+	DownvoteUsers  []string         `json: "downvoteusers"`          //list of users to target for downvotes
+	UpvoteUsers    []string `json: "upvoteusers"` //users to target for upvotes
 	RedditAccounts []*RedditAccount `json: "redditAccounts"` //reddit accounts to log in and vote with
 }
 

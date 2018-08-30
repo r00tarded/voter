@@ -5,17 +5,27 @@ import (
 	"github.com/jzelinskie/geddit"
 	"log"
 	"os"
+	"math/rand"
+	"time"
 )
 
 const userAgent = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15`
 
+var (
+	oVerbose bool
+	oConfig string
+)
+
+func init() {
+	rand.Seed(time.Now().Unix())
+	flag.StringVar(&oConfig, "c", "", "config file")
+	flag.BoolVar(&oVerbose, "v", false, "enable verbose mode")
+	flag.Parse()
+}
+
 func main() {
-	var oConfig string
 	var config *Config
 	var err error
-
-	flag.StringVar(&oConfig, "c", "", "config file")
-	flag.Parse()
 
 	if oConfig == "" {
 		log.Println("[x] need config file")
@@ -42,8 +52,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	aComments := make([]*geddit.Comment, 0)
-	aSubmissions := make([]*geddit.Submission, 0)
+	dComments := make([]*geddit.Comment, 0)
+	dSubmissions := make([]*geddit.Submission, 0)
+	uComments := make([]*geddit.Comment, 0)
+	uSubmissions := make([]*geddit.Submission, 0)
+
+	log.Println("[*] looking through posts and comments...")
 
 	for _, subreddit := range config.Subreddits {
 		var comments []*geddit.Comment
@@ -52,14 +66,28 @@ func main() {
 			log.Printf("[x] error reading comments: %s\n", err)
 		}
 
-		log.Printf("[*] got a total of %d comments to check from /r/%s\n", len(comments), subreddit)
+		if oVerbose {
+			log.Printf("[*] got a total of %d comments to check from /r/%s\n", len(comments), subreddit)
+		}
 
 		for _, comment := range comments {
-			for i := 0; i < len(config.Users); i++ {
-				userName := config.Users[i]
+			for i := 0; i < len(config.DownvoteUsers); i++ {
+				userName := config.DownvoteUsers[i]
 				if comment.Author == userName {
-					aComments = append(aComments, comment)
-					log.Printf("[*] added comment in /r/%s from %s to the examine queue\n", subreddit, userName)
+					dComments = append(dComments, comment)
+					if oVerbose {
+						log.Printf("[*] added comment in /r/%s from %s to the downvote examine queue\n", subreddit, userName)
+					}
+					break
+				}
+			}
+			for i := 0; i < len(config.UpvoteUsers); i++ {
+				userName := config.UpvoteUsers[i]
+				if comment.Author == userName {
+					uComments = append(uComments, comment)
+					if oVerbose {
+						log.Printf("[*] added comment in /r/%s from %s to the upvote examine queue\n", subreddit, userName)
+					}
 					break
 				}
 			}
@@ -72,30 +100,48 @@ func main() {
 		var submissions []*geddit.Submission
 		submissions, err = mSession.SubredditSubmissions(subreddit, geddit.DefaultPopularity, options)
 
-		log.Printf("[*] got a total of %d submissions from /r/%s to check\n", len(submissions), subreddit)
+		if oVerbose {
+			log.Printf("[*] got a total of %d submissions from /r/%s to check\n", len(submissions), subreddit)
+		}
 		for _, submission := range submissions {
-			for i := 0; i < len(config.Users); i++ {
-				userName := config.Users[i]
+			for i := 0; i < len(config.DownvoteUsers); i++ {
+				userName := config.DownvoteUsers[i]
 				if submission.Author == userName {
-					aSubmissions = append(aSubmissions, submission)
-					log.Printf("[*] added submission in /r/%s from %s to the examine queue\n", subreddit, userName)
+					dSubmissions = append(dSubmissions, submission)
+					if oVerbose {
+						log.Printf("[*] added submission in /r/%s from %s to the downvote examine queue\n", subreddit, userName)
+					}
+					break
+				}
+			}
+			for i := 0; i < len(config.UpvoteUsers); i++ {
+				userName := config.UpvoteUsers[i]
+				if submission.Author == userName {
+					uSubmissions = append(uSubmissions, submission)
+					if oVerbose {
+						log.Printf("[*] added submission in /r/%s from %s to the upvote examine queue\n", subreddit, userName)
+					}
 					break
 				}
 			}
 		}
 	}
 
-	massDownvoteComments(config, aComments, mSession, db)
-	massDownvoteSubmissions(config, aSubmissions, mSession, db)
+	log.Println("[*] starting vote routines")
+
+	massVoteComments(config, dComments, uComments, mSession, db)
+	massVoteSubmissions(config, dSubmissions, uSubmissions, mSession, db)
 
 	log.Println("[*] finished!")
 	os.Exit(0)
 }
 
-func massDownvoteComments(config *Config, comments []*geddit.Comment, mSession *geddit.LoginSession, db *Database) {
-	log.Println("[*] running comment downvote routine")
+func massVoteComments(config *Config, dComments []*geddit.Comment, uComments []*geddit.Comment, mSession *geddit.LoginSession, db *Database) {
+	if oVerbose {
+		log.Println("[*] running comment vote routine")
+	}
 
-	downvoteComments(config.RedditAccounts[0].User, mSession, comments, db)
+	voteComments(config.RedditAccounts[0].User, mSession, dComments, uComments, db)
 
 	for j := 1; j < len(config.RedditAccounts); j++ {
 		acct := config.RedditAccounts[j]
@@ -111,16 +157,20 @@ func massDownvoteComments(config *Config, comments []*geddit.Comment, mSession *
 			continue
 		}
 
-		log.Printf("[*] logged in with reddit account: %s\n", acct.User)
+		if oVerbose {
+			log.Printf("[*] logged in with reddit account: %s\n", acct.User)
+		}
 
-		downvoteComments(acct.User, session, comments, db)
+		voteComments(acct.User, session, dComments, uComments, db)
 	}
 }
 
-func massDownvoteSubmissions(config *Config, submissions []*geddit.Submission, mSession *geddit.LoginSession, db *Database) {
-	log.Println("[*] running submission downvote routine")
+func massVoteSubmissions(config *Config, dSubmissions []*geddit.Submission, uSubmissions []*geddit.Submission, mSession *geddit.LoginSession, db *Database) {
+	if oVerbose {
+		log.Println("[*] running submission vote routine")
+	}
 
-	downvoteSubmissions(config.RedditAccounts[0].User, mSession, submissions, db)
+	voteSubmissions(config.RedditAccounts[0].User, mSession, dSubmissions, uSubmissions, db)
 
 	for j := 1; j < len(config.RedditAccounts); j++ {
 		acct := config.RedditAccounts[j]
@@ -136,28 +186,45 @@ func massDownvoteSubmissions(config *Config, submissions []*geddit.Submission, m
 			continue
 		}
 
-		log.Printf("[*] logged in with reddit account: %s\n", acct.User)
+		if oVerbose {
+			log.Printf("[*] logged in with reddit account: %s\n", acct.User)
+		}
 
-		downvoteSubmissions(acct.User, session, submissions, db)
+		voteSubmissions(acct.User, session, dSubmissions, uSubmissions, db)
 	}
 }
 
-func downvoteSubmissions(user string, session *geddit.LoginSession, submissions []*geddit.Submission, db *Database) {
-	for _, submission := range submissions {
+func voteSubmissions(user string, session *geddit.LoginSession, dSubmissions []*geddit.Submission, uSubmissions []*geddit.Submission, db *Database) {
+	for _, submission := range dSubmissions {
 		if !db.ContainsDownvote(user, submission.Permalink) {
 			session.Vote(submission, geddit.DownVote)
 			log.Printf("[-] %s downvoted %s's submission: %s\n", user, submission.Author, submission.FullPermalink())
 			db.AddDownvote(user, submission.Permalink)
 		}
 	}
+
+	for _, submission := range uSubmissions {
+		if !db.ContainsUpvote(user, submission.Permalink) {
+			session.Vote(submission, geddit.UpVote)
+			log.Printf("[+] %s upvoted %s's submission: %s\n", user, submission.Author, submission.FullPermalink())
+		}
+	}
 }
 
-func downvoteComments(user string, session *geddit.LoginSession, comments []*geddit.Comment, db *Database) {
-	for _, comment := range comments {
+func voteComments(user string, session *geddit.LoginSession, dComments []*geddit.Comment, uComments []*geddit.Comment, db *Database) {
+	for _, comment := range dComments {
 		if !db.ContainsDownvote(user, comment.Permalink) {
 			session.Vote(comment, geddit.DownVote)
 			log.Printf("[-] %s downvoted %s's comment: %s\n", user, comment.Author, comment.FullPermalink())
 			db.AddDownvote(user, comment.Permalink)
+		}
+	}
+
+	for _, comment := range uComments {
+		if !db.ContainsUpvote(user, comment.Permalink) {
+			session.Vote(comment, geddit.UpVote)
+			log.Printf("[+] %s upvoted %s's comment: %s\n", user, comment.Author, comment.FullPermalink())
+			db.AddUpvote(user, comment.Permalink)
 		}
 	}
 }
