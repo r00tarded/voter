@@ -45,6 +45,16 @@ func (d *Database) AddUpvote(redditAcct string, permalink string) {
 	d.addVote(redditAcct, upvoteKey(permalink))
 }
 
+//RemoveDownvote removes a record from the DB
+func (d *Database) RemoveDownvote(redditAcct string, permalink string) {
+	d.removeVote(redditAcct, downvoteKey(permalink))
+}
+
+//RemoveUpvote removes a record from the DB
+func (d *Database) RemoveUpvote(redditAcct string, permalink string) {
+	d.removeVote(redditAcct, upvoteKey(permalink))
+}
+
 //Close closes out database resources.
 func (d *Database) Close() {
 	d.db.Close()
@@ -82,6 +92,26 @@ func (d *Database) addVote(redditAcct string, key string) {
 		err = b.Put([]byte(key), []byte("t"))
 		if err != nil {
 			log.Printf("[x] error adding value to DB: %s", err)
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+//Reusable function to remove votes from DB
+func (d *Database) removeVote(redditAcct string, key string) {
+	err := d.db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(redditAcct))
+		if err != nil {
+			log.Printf("[x] error creating bucket: %s", err)
+			return err
+		}
+		err = b.Delete([]byte(key))
+		if err != nil {
+			log.Printf("[x] error deleting value from DB: %s", err)
 			return err
 		}
 		return nil

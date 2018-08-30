@@ -224,6 +224,7 @@ func voteSubmissions(user string, session *geddit.LoginSession, dSubmissions []*
 			session.Vote(submission, geddit.DownVote)
 			log.Printf("[-] %s downvoted %s's submission: %s\n", user, submission.Author, submission.FullPermalink())
 			db.AddDownvote(user, submission.Permalink)
+			db.RemoveUpvote(user, submission.Permalink)
 		}
 	}
 
@@ -232,6 +233,7 @@ func voteSubmissions(user string, session *geddit.LoginSession, dSubmissions []*
 			session.Vote(submission, geddit.UpVote)
 			log.Printf("[+] %s upvoted %s's submission: %s\n", user, submission.Author, submission.FullPermalink())
 			db.AddUpvote(user, submission.Permalink)
+			db.RemoveDownvote(user, submission.Permalink)
 		}
 	}
 }
@@ -242,6 +244,7 @@ func voteComments(user string, session *geddit.LoginSession, dComments []*geddit
 			session.Vote(comment, geddit.DownVote)
 			log.Printf("[-] %s downvoted %s's comment: %s\n", user, comment.Author, comment.FullPermalink())
 			db.AddDownvote(user, comment.Permalink)
+			db.RemoveUpvote(user, comment.Permalink)
 		}
 	}
 
@@ -250,6 +253,7 @@ func voteComments(user string, session *geddit.LoginSession, dComments []*geddit
 			session.Vote(comment, geddit.UpVote)
 			log.Printf("[+] %s upvoted %s's comment: %s\n", user, comment.Author, comment.FullPermalink())
 			db.AddUpvote(user, comment.Permalink)
+			db.RemoveDownvote(user, comment.Permalink)
 		}
 	}
 }
