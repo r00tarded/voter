@@ -54,6 +54,7 @@ func (d *Database) RemoveUpvote(redditAcct string, permalink string) {
 //Close closes out database resources.
 func (d *Database) Close() {
 	d.db.Close()
+	log.Println("[*] closed database connection")
 }
 
 //Reusable function for checking up/down votes

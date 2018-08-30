@@ -18,6 +18,7 @@ type Config struct {
 	DownvoteUsers  []string         `json: "downvoteusers"`  //list of users to target for downvotes
 	UpvoteUsers    []string         `json: "upvoteusers"`    //users to target for upvotes
 	RedditAccounts []*RedditAccount `json: "redditAccounts"` //reddit accounts to log in and vote with
+	Sleep          int              `json: "sleep"`
 }
 
 //NewConfig creates a new instance of Config.

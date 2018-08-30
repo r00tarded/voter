@@ -49,6 +49,8 @@ func NewVoter(db *Database) *Voter {
 //LoadComments primes the Voter with comments.
 func (v *Voter) LoadComments() {
 	log.Println("[*] loading comments...")
+	v.uComments = nil
+	v.dComments = nil
 	var err error
 	for _, subreddit := range config.Subreddits {
 		var comments []*geddit.Comment
@@ -99,6 +101,8 @@ func (v *Voter) LoadComments() {
 //LoadSubmissions primes the voter with submissions.
 func (v *Voter) LoadSubmissions() {
 	log.Println("[*] loading submissions...")
+	v.uSubmissions = nil
+	v.dSubmissions = nil
 	options := geddit.ListingOptions{Limit: config.Limit}
 	for _, subreddit := range config.Subreddits {
 		submissions, err := v.sessions[0].SubredditSubmissions(subreddit, geddit.DefaultPopularity, options)

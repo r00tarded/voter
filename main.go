@@ -5,6 +5,8 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -41,13 +43,25 @@ func init() {
 
 func main() {
 	db := DBConn(config.DataDir)
-	defer db.Close()
+
+	//gracefully handle shutdown
+	c := make(chan os.Signal)
+	signal.Notify(c, syscall.SIGTERM)
+	signal.Notify(c, syscall.SIGINT)
+	go func() {
+		<-c
+		log.Println("[*] shutting down")
+		db.Close()
+		os.Exit(0)
+	}()
 
 	voter := NewVoter(db)
-	voter.LoadComments()
-	voter.LoadSubmissions()
-	voter.Vote()
 
-	log.Println("[*] finished!")
-	os.Exit(0)
+	for {
+		voter.LoadComments()
+		voter.LoadSubmissions()
+		voter.Vote()
+		log.Printf("[*] finished vote cycle, sleeping for %d seconds", config.Sleep)
+		time.Sleep(time.Duration(config.Sleep) * time.Second)
+	}
 }
