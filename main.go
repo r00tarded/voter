@@ -4,18 +4,19 @@ import (
 	"flag"
 	"github.com/jzelinskie/geddit"
 	"log"
-	"os"
 	"math/rand"
+	"os"
 	"time"
 )
 
 const userAgent = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15`
 
 var (
-	oVerbose bool
-	oUpvoteAll bool
+	oVerbose     bool
+	oUpvoteAll   bool
 	oDownvoteAll bool
-	oConfig string
+	oConfig      string
+	config       *Config
 )
 
 func init() {
@@ -25,22 +26,22 @@ func init() {
 	flag.BoolVar(&oUpvoteAll, "ua", false, "upvote everything found in scan")
 	flag.BoolVar(&oDownvoteAll, "da", false, "downvote everything found in scan")
 	flag.Parse()
-}
-
-func main() {
-	var config *Config
-	var err error
 
 	if oConfig == "" {
 		log.Println("[x] need config file")
 		os.Exit(1)
 	}
 
+	var err error
 	config, err = NewConfig(oConfig)
 	if err != nil {
 		log.Printf("[x] error reading config: %s", err)
 		os.Exit(1)
 	}
+}
+
+func main() {
+	var err error
 
 	db := DBConn(config.DataDir)
 	defer db.Close()
@@ -153,14 +154,14 @@ func main() {
 
 	log.Println("[*] starting vote routines")
 
-	massVoteComments(config, dComments, uComments, mSession, db)
-	massVoteSubmissions(config, dSubmissions, uSubmissions, mSession, db)
+	massVoteComments(dComments, uComments, mSession, db)
+	massVoteSubmissions(dSubmissions, uSubmissions, mSession, db)
 
 	log.Println("[*] finished!")
 	os.Exit(0)
 }
 
-func massVoteComments(config *Config, dComments []*geddit.Comment, uComments []*geddit.Comment, mSession *geddit.LoginSession, db *Database) {
+func massVoteComments(dComments []*geddit.Comment, uComments []*geddit.Comment, mSession *geddit.LoginSession, db *Database) {
 	if oVerbose {
 		log.Println("[*] running comment vote routine")
 	}
@@ -189,7 +190,7 @@ func massVoteComments(config *Config, dComments []*geddit.Comment, uComments []*
 	}
 }
 
-func massVoteSubmissions(config *Config, dSubmissions []*geddit.Submission, uSubmissions []*geddit.Submission, mSession *geddit.LoginSession, db *Database) {
+func massVoteSubmissions(dSubmissions []*geddit.Submission, uSubmissions []*geddit.Submission, mSession *geddit.LoginSession, db *Database) {
 	if oVerbose {
 		log.Println("[*] running submission vote routine")
 	}
@@ -220,6 +221,9 @@ func massVoteSubmissions(config *Config, dSubmissions []*geddit.Submission, uSub
 
 func voteSubmissions(user string, session *geddit.LoginSession, dSubmissions []*geddit.Submission, uSubmissions []*geddit.Submission, db *Database) {
 	for _, submission := range dSubmissions {
+		if isIgnored(submission.Author) {
+			continue
+		}
 		if !db.ContainsDownvote(user, submission.Permalink) {
 			session.Vote(submission, geddit.DownVote)
 			log.Printf("[-] %s downvoted %s's submission: %s\n", user, submission.Author, submission.FullPermalink())
@@ -229,6 +233,9 @@ func voteSubmissions(user string, session *geddit.LoginSession, dSubmissions []*
 	}
 
 	for _, submission := range uSubmissions {
+		if isIgnored(submission.Author) {
+			continue
+		}
 		if !db.ContainsUpvote(user, submission.Permalink) {
 			session.Vote(submission, geddit.UpVote)
 			log.Printf("[+] %s upvoted %s's submission: %s\n", user, submission.Author, submission.FullPermalink())
@@ -240,6 +247,9 @@ func voteSubmissions(user string, session *geddit.LoginSession, dSubmissions []*
 
 func voteComments(user string, session *geddit.LoginSession, dComments []*geddit.Comment, uComments []*geddit.Comment, db *Database) {
 	for _, comment := range dComments {
+		if isIgnored(comment.Author) {
+			continue
+		}
 		if !db.ContainsDownvote(user, comment.Permalink) {
 			session.Vote(comment, geddit.DownVote)
 			log.Printf("[-] %s downvoted %s's comment: %s\n", user, comment.Author, comment.FullPermalink())
@@ -249,6 +259,9 @@ func voteComments(user string, session *geddit.LoginSession, dComments []*geddit
 	}
 
 	for _, comment := range uComments {
+		if isIgnored(comment.Author) {
+			continue
+		}
 		if !db.ContainsUpvote(user, comment.Permalink) {
 			session.Vote(comment, geddit.UpVote)
 			log.Printf("[+] %s upvoted %s's comment: %s\n", user, comment.Author, comment.FullPermalink())
@@ -256,4 +269,14 @@ func voteComments(user string, session *geddit.LoginSession, dComments []*geddit
 			db.RemoveDownvote(user, comment.Permalink)
 		}
 	}
+}
+
+//Check ignored users list to see if this user is in it
+func isIgnored(user string) bool {
+	for _, ign := range config.Ignores {
+		if user == ign {
+			return true
+		}
+	}
+	return false
 }
