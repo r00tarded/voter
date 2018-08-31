@@ -4,6 +4,7 @@ import (
 	"github.com/jzelinskie/geddit"
 	"log"
 	"os"
+	"strings"
 )
 
 //Voter contains the logic for Reddit voting.
@@ -76,7 +77,7 @@ func (v *Voter) LoadComments() {
 		for _, comment := range comments {
 			for i := 0; i < len(config.DownvoteUsers); i++ {
 				userName := config.DownvoteUsers[i]
-				if comment.Author == userName {
+				if strings.EqualFold(comment.Author, userName) {
 					v.dComments = append(v.dComments, comment)
 					if oVerbose {
 						log.Printf("[*] added comment in /r/%s from %s to the downvote examine queue\n", subreddit, userName)
@@ -86,7 +87,7 @@ func (v *Voter) LoadComments() {
 			}
 			for i := 0; i < len(config.UpvoteUsers); i++ {
 				userName := config.UpvoteUsers[i]
-				if comment.Author == userName {
+				if strings.EqualFold(comment.Author, userName) {
 					v.uComments = append(v.uComments, comment)
 					if oVerbose {
 						log.Printf("[*] added comment in /r/%s from %s to the upvote examine queue\n", subreddit, userName)
@@ -126,7 +127,7 @@ func (v *Voter) LoadSubmissions() {
 		for _, submission := range submissions {
 			for i := 0; i < len(config.DownvoteUsers); i++ {
 				userName := config.DownvoteUsers[i]
-				if submission.Author == userName {
+				if strings.EqualFold(submission.Author, userName) {
 					v.dSubmissions = append(v.dSubmissions, submission)
 					if oVerbose {
 						log.Printf("[*] added submission in /r/%s from %s to the downvote examine queue\n", subreddit, userName)
@@ -136,7 +137,7 @@ func (v *Voter) LoadSubmissions() {
 			}
 			for i := 0; i < len(config.UpvoteUsers); i++ {
 				userName := config.UpvoteUsers[i]
-				if submission.Author == userName {
+				if strings.EqualFold(submission.Author, userName) {
 					v.uSubmissions = append(v.uSubmissions, submission)
 					if oVerbose {
 						log.Printf("[*] added submission in /r/%s from %s to the upvote examine queue\n", subreddit, userName)
@@ -230,7 +231,7 @@ func voteComments(user string, session *geddit.LoginSession, dComments []*geddit
 //Check ignored users list to see if this user is in it
 func isIgnored(user string) bool {
 	for _, ign := range config.Ignores {
-		if user == ign {
+		if strings.EqualFold(user, ign) {
 			return true
 		}
 	}
