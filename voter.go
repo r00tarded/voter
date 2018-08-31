@@ -77,7 +77,7 @@ func (v *Voter) LoadComments() {
 		if oHammer {
 			for _, comment := range comments {
 				a := len(config.RedditAccounts)
-				if comment.Score < 1 && int(comment.Score) > -a {
+				if comment.Score < 1 && int(comment.Score) > -a/2 {
 					v.dComments = append(v.dComments, comment)
 					if oVerbose {
 						log.Printf("[*] added comment with score %.0f in /r/%s from %s to the downvote queue\n",
