@@ -44,7 +44,8 @@ func NewVoter(db *Database) *Voter {
 		sessions = append(sessions, session)
 	}
 
-	return &Voter{db: db, sessions: sessions, uComments: uComments, uSubmissions: uSubmissions, dComments: dComments, dSubmissions: dSubmissions}
+	return &Voter{db: db, sessions: sessions, uComments: uComments, uSubmissions: uSubmissions,
+		dComments: dComments, dSubmissions: dSubmissions}
 }
 
 //LoadComments primes the Voter with comments.
@@ -53,13 +54,15 @@ func (v *Voter) LoadComments() {
 	v.uComments = nil
 	v.dComments = nil
 	var err error
+	options := geddit.ListingOptions{Limit: config.Limit}
 	for _, subreddit := range config.Subreddits {
 		var comments []*geddit.Comment
-		comments, err = v.sessions[0].SubredditComments(subreddit)
+		comments, err = v.sessions[0].SubredditComments(subreddit, options)
 		if err != nil {
 			log.Printf("[x] error reading comments: %s\n", err)
 		}
 
+		//check for up/downvote all flags
 		if oUpvoteAll {
 			log.Printf("[*] adding all comments from %s to upvote queue", subreddit)
 			v.uComments = append(v.uComments, comments...)
@@ -70,6 +73,28 @@ func (v *Voter) LoadComments() {
 			continue
 		}
 
+		//handle hammer mode
+		if oHammer {
+			for _, comment := range comments {
+				a := len(config.RedditAccounts)
+				if comment.Score < 1 && int(comment.Score) > -a {
+					v.dComments = append(v.dComments, comment)
+					if oVerbose {
+						log.Printf("[*] added comment with score %.0f in /r/%s from %s to the downvote queue\n",
+							comment.Score, subreddit, comment.Author)
+					}
+				} else if comment.Score > 1 && int(comment.Score) < a/2 {
+					v.uComments = append(v.uComments, comment)
+					if oVerbose {
+						log.Printf("[*] added comment with score %.0f in /r/%s from %s to the upvote queue\n",
+							comment.Score, subreddit, comment.Author)
+					}
+				}
+			}
+			continue
+		}
+
+		//default config driven behavior
 		if oVerbose {
 			log.Printf("[*] got a total of %d comments to check from /r/%s\n", len(comments), subreddit)
 		}
@@ -118,6 +143,27 @@ func (v *Voter) LoadSubmissions() {
 		} else if oDownvoteAll {
 			log.Printf("[*] adding all submissions from %s to downvote queue\n", subreddit)
 			v.dSubmissions = append(v.dSubmissions, submissions...)
+			continue
+		}
+
+		//handle hammer mode
+		if oHammer {
+			for _, submission := range submissions {
+				a := len(config.RedditAccounts)
+				if submission.Score == 0 && submission.Downs > 2 {
+					v.dSubmissions = append(v.dSubmissions, submission)
+					if oVerbose {
+						log.Printf("[*] added submission with score %d in /r/%s from %s to the downvote queue\n",
+							submission.Score, subreddit, submission.Author)
+					}
+				} else if submission.Score > 2 && submission.Score < a/2 {
+					v.uSubmissions = append(v.uSubmissions, submission)
+					if oVerbose {
+						log.Printf("[*] added submission with score %d in /r/%s from %s to the upvote queue\n",
+							submission.Score, subreddit, submission.Author)
+					}
+				}
+			}
 			continue
 		}
 
@@ -181,24 +227,14 @@ func voteSubmissions(user string, session *geddit.LoginSession, dSubmissions []*
 		if isIgnored(submission.Author) {
 			continue
 		}
-		if !db.ContainsDownvote(user, submission.Permalink) {
-			session.Vote(submission, geddit.DownVote)
-			log.Printf("[-] %s downvoted %s's submission: %s\n", user, submission.Author, submission.FullPermalink())
-			db.AddDownvote(user, submission.Permalink)
-			db.RemoveUpvote(user, submission.Permalink)
-		}
+		downvoteSubmission(user, session, submission, db)
 	}
 
 	for _, submission := range uSubmissions {
 		if isIgnored(submission.Author) {
 			continue
 		}
-		if !db.ContainsUpvote(user, submission.Permalink) {
-			session.Vote(submission, geddit.UpVote)
-			log.Printf("[+] %s upvoted %s's submission: %s\n", user, submission.Author, submission.FullPermalink())
-			db.AddUpvote(user, submission.Permalink)
-			db.RemoveDownvote(user, submission.Permalink)
-		}
+		upvoteSubmission(user, session, submission, db)
 	}
 }
 
@@ -207,24 +243,54 @@ func voteComments(user string, session *geddit.LoginSession, dComments []*geddit
 		if isIgnored(comment.Author) {
 			continue
 		}
-		if !db.ContainsDownvote(user, comment.Permalink) {
-			session.Vote(comment, geddit.DownVote)
-			log.Printf("[-] %s downvoted %s's comment: %s\n", user, comment.Author, comment.FullPermalink())
-			db.AddDownvote(user, comment.Permalink)
-			db.RemoveUpvote(user, comment.Permalink)
-		}
+		downvoteComment(user, session, comment, db)
 	}
 
 	for _, comment := range uComments {
 		if isIgnored(comment.Author) {
 			continue
 		}
-		if !db.ContainsUpvote(user, comment.Permalink) {
-			session.Vote(comment, geddit.UpVote)
-			log.Printf("[+] %s upvoted %s's comment: %s\n", user, comment.Author, comment.FullPermalink())
-			db.AddUpvote(user, comment.Permalink)
-			db.RemoveDownvote(user, comment.Permalink)
-		}
+		upvoteComment(user, session, comment, db)
+	}
+}
+
+func upvoteSubmission(acctName string, session *geddit.LoginSession, submission *geddit.Submission, db *Database) {
+	if !db.ContainsUpvote(acctName, submission.Permalink) {
+		session.Vote(submission, geddit.UpVote)
+		log.Printf("[+] %s upvoted %s's submission: %s\n", acctName, submission.Author, submission.FullPermalink())
+		db.AddUpvote(acctName, submission.Permalink)
+		db.RemoveDownvote(acctName, submission.Permalink)
+		tUpvotes++
+	}
+}
+
+func downvoteSubmission(acctName string, session *geddit.LoginSession, submission *geddit.Submission, db *Database) {
+	if !db.ContainsDownvote(acctName, submission.Permalink) {
+		session.Vote(submission, geddit.DownVote)
+		log.Printf("[-] %s downvoted %s's submission: %s\n", acctName, submission.Author, submission.FullPermalink())
+		db.AddDownvote(acctName, submission.Permalink)
+		db.RemoveUpvote(acctName, submission.Permalink)
+		tDownvotes++
+	}
+}
+
+func upvoteComment(acctName string, session *geddit.LoginSession, comment *geddit.Comment, db *Database) {
+	if !db.ContainsUpvote(acctName, comment.Permalink) {
+		session.Vote(comment, geddit.UpVote)
+		log.Printf("[+] %s upvoted %s's comment: %s\n", acctName, comment.Author, comment.FullPermalink())
+		db.AddUpvote(acctName, comment.Permalink)
+		db.RemoveDownvote(acctName, comment.Permalink)
+		tUpvotes++
+	}
+}
+
+func downvoteComment(acctName string, session *geddit.LoginSession, comment *geddit.Comment, db *Database) {
+	if !db.ContainsDownvote(acctName, comment.Permalink) {
+		session.Vote(comment, geddit.DownVote)
+		log.Printf("[-] %s downvoted %s's comment: %s\n", acctName, comment.Author, comment.FullPermalink())
+		db.AddDownvote(acctName, comment.Permalink)
+		db.RemoveUpvote(acctName, comment.Permalink)
+		tDownvotes++
 	}
 }
 

@@ -16,8 +16,11 @@ var (
 	oVerbose     bool
 	oUpvoteAll   bool
 	oDownvoteAll bool
+	oHammer      bool
 	oConfig      string
 	config       *Config
+	tUpvotes     = 0 //total upvotes given out this session
+	tDownvotes   = 0 //total downvotes given out this session
 )
 
 func init() {
@@ -26,6 +29,7 @@ func init() {
 	flag.BoolVar(&oVerbose, "v", false, "enable verbose mode")
 	flag.BoolVar(&oUpvoteAll, "ua", false, "upvote everything found in scan")
 	flag.BoolVar(&oDownvoteAll, "da", false, "downvote everything found in scan")
+	flag.BoolVar(&oHammer, "h", false, "enables hammer mode")
 	flag.Parse()
 
 	if oConfig == "" {
@@ -51,6 +55,8 @@ func main() {
 	go func() {
 		<-c
 		log.Println("[*] shutting down")
+		log.Printf("[*] total upvotes given:   %d", tUpvotes)
+		log.Printf("[*] total downvotes given: %d", tDownvotes)
 		db.Close()
 		os.Exit(0)
 	}()
