@@ -105,7 +105,8 @@ func (v *Voter) LoadComments() {
 				if strings.EqualFold(comment.Author, userName) {
 					v.dComments = append(v.dComments, comment)
 					if oVerbose {
-						log.Printf("[*] added comment in /r/%s from %s to the downvote examine queue\n", subreddit, userName)
+						log.Printf("[*] added comment in /r/%s from %s to the downvote examine queue\n",
+							subreddit, userName)
 					}
 					break
 				}
@@ -115,7 +116,8 @@ func (v *Voter) LoadComments() {
 				if strings.EqualFold(comment.Author, userName) {
 					v.uComments = append(v.uComments, comment)
 					if oVerbose {
-						log.Printf("[*] added comment in /r/%s from %s to the upvote examine queue\n", subreddit, userName)
+						log.Printf("[*] added comment in /r/%s from %s to the upvote examine queue\n",
+							subreddit, userName)
 					}
 					break
 				}
@@ -176,7 +178,8 @@ func (v *Voter) LoadSubmissions() {
 				if strings.EqualFold(submission.Author, userName) {
 					v.dSubmissions = append(v.dSubmissions, submission)
 					if oVerbose {
-						log.Printf("[*] added submission in /r/%s from %s to the downvote examine queue\n", subreddit, userName)
+						log.Printf("[*] added submission in /r/%s from %s to the downvote examine queue\n",
+							subreddit, userName)
 					}
 					break
 				}
@@ -186,7 +189,8 @@ func (v *Voter) LoadSubmissions() {
 				if strings.EqualFold(submission.Author, userName) {
 					v.uSubmissions = append(v.uSubmissions, submission)
 					if oVerbose {
-						log.Printf("[*] added submission in /r/%s from %s to the upvote examine queue\n", subreddit, userName)
+						log.Printf("[*] added submission in /r/%s from %s to the upvote examine queue\n",
+							subreddit, userName)
 					}
 					break
 				}
@@ -257,7 +261,8 @@ func voteComments(user string, session *geddit.LoginSession, dComments []*geddit
 func upvoteSubmission(acctName string, session *geddit.LoginSession, submission *geddit.Submission, db *Database) {
 	if !db.ContainsUpvote(acctName, submission.Permalink) {
 		session.Vote(submission, geddit.UpVote)
-		log.Printf("[+] %s upvoted %s's submission: %s\n", acctName, submission.Author, submission.FullPermalink())
+		log.Printf("[+] %s upvoted %s's submission in %s: %s\n",
+			acctName, submission.Author, submission.Subreddit, submission.FullID)
 		db.AddUpvote(acctName, submission.Permalink)
 		db.RemoveDownvote(acctName, submission.Permalink)
 		tUpvotes++
@@ -267,7 +272,8 @@ func upvoteSubmission(acctName string, session *geddit.LoginSession, submission 
 func downvoteSubmission(acctName string, session *geddit.LoginSession, submission *geddit.Submission, db *Database) {
 	if !db.ContainsDownvote(acctName, submission.Permalink) {
 		session.Vote(submission, geddit.DownVote)
-		log.Printf("[-] %s downvoted %s's submission: %s\n", acctName, submission.Author, submission.FullPermalink())
+		log.Printf("[-] %s downvoted %s's submission in %s: %s\n",
+			acctName, submission.Author, submission.Subreddit, submission.FullID)
 		db.AddDownvote(acctName, submission.Permalink)
 		db.RemoveUpvote(acctName, submission.Permalink)
 		tDownvotes++
@@ -277,7 +283,8 @@ func downvoteSubmission(acctName string, session *geddit.LoginSession, submissio
 func upvoteComment(acctName string, session *geddit.LoginSession, comment *geddit.Comment, db *Database) {
 	if !db.ContainsUpvote(acctName, comment.Permalink) {
 		session.Vote(comment, geddit.UpVote)
-		log.Printf("[+] %s upvoted %s's comment: %s\n", acctName, comment.Author, comment.FullPermalink())
+		log.Printf("[+] %s upvoted %s's comment in %s: %s\n",
+			acctName, comment.Author, comment.Subreddit, comment.FullID)
 		db.AddUpvote(acctName, comment.Permalink)
 		db.RemoveDownvote(acctName, comment.Permalink)
 		tUpvotes++
@@ -287,7 +294,8 @@ func upvoteComment(acctName string, session *geddit.LoginSession, comment *geddi
 func downvoteComment(acctName string, session *geddit.LoginSession, comment *geddit.Comment, db *Database) {
 	if !db.ContainsDownvote(acctName, comment.Permalink) {
 		session.Vote(comment, geddit.DownVote)
-		log.Printf("[-] %s downvoted %s's comment: %s\n", acctName, comment.Author, comment.FullPermalink())
+		log.Printf("[-] %s downvoted %s's comment in %s: %s\n",
+			acctName, comment.Author, comment.Subreddit, comment.FullID)
 		db.AddDownvote(acctName, comment.Permalink)
 		db.RemoveUpvote(acctName, comment.Permalink)
 		tDownvotes++
