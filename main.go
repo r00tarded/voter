@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"fmt"
 )
 
 const userAgent = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15`
@@ -54,6 +55,7 @@ func main() {
 	signal.Notify(c, syscall.SIGINT)
 	go func() {
 		<-c
+		fmt.Println("")
 		log.Println("[*] shutting down")
 		log.Printf("[*] total upvotes given:   %d", tUpvotes)
 		log.Printf("[*] total downvotes given: %d", tDownvotes)
