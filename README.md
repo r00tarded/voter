@@ -2,9 +2,25 @@
 
 Vote bot for reddit.
 
+## build
+
+````
+$ go get github.com/jpclark/voter...
+$ cd $GOPATH/src/github.com/jpclark/voter
+$ go build
+````
+
+The first time you run the bot it will create a database file in the directory
+named by the "datadir" configuration variable. You will need to create this directory
+in the voter working directory (or wherever you wish to store it), e.g. 
+
+``$ mkdir $GOPATH/src/github.com/jpclark/voter/data`` 
+
+*note: this database tracks which posts have been voted on to prevent wasting vote requests* 
+
 ## usage
 You must create a configuration file and pass it in with the ``-c`` flag. See
-the ``example.config.json`` file for the required fields. 
+the ``example.config.json`` file for the required fields.
 
 ````
 Usage of ./voter:
