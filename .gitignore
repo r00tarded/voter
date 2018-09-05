@@ -1,6 +1,5 @@
 .idea
 voter
 voter.exe
-config.json
-vote-all-config.json
 data
+config
