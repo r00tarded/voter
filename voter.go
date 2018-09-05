@@ -32,7 +32,7 @@ func NewVoter(db *Database) *Voter {
 		session, err := geddit.NewLoginSession(
 			acct.User,
 			acct.Pass,
-			userAgent,
+			config.UserAgent,
 		)
 		if err != nil {
 			log.Printf("[x] error logging in with account (%s): %s\n", acct.User, err)

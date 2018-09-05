@@ -2,16 +2,14 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"fmt"
 )
-
-const userAgent = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15`
 
 var (
 	oVerbose     bool
@@ -63,6 +61,14 @@ func main() {
 		os.Exit(0)
 	}()
 
+	if oVerbose {
+		log.Printf("[*] starting voter with configuration: %s", oConfig)
+		log.Printf("[*] user agent: %s", config.UserAgent)
+		log.Printf("[*] post limit: %d", config.Limit)
+		log.Printf("[*] sleep timer: %d seconds", config.Sleep)
+		log.Printf("[*] logging in with %d different accounts", len(config.RedditAccounts))
+	}
+	
 	voter := NewVoter(db)
 
 	for {

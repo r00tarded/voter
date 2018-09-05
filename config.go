@@ -11,6 +11,7 @@ type RedditAccount struct {
 }
 
 type Config struct {
+	UserAgent      string           `json:"userAgent"`       //user agent for client
 	DataDir        string           `json:"datadir"`         //directory containing database
 	Subreddits     []string         `json: "subreddits"`     //list of subreddits to scan
 	Limit          int              `json: "limit"`          //limit the number of posts to retrieve
