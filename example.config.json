@@ -1,0 +1,27 @@
+{
+    "datadir": "data",
+    "limit": 100,
+    "sleep": 30,
+    "ignores": [
+      "user_to_ignore"
+    ],
+    "subreddits": [
+      "list", "of", "subreddit_names"
+    ],
+	"downvoteusers": [
+      "users_to_downvote"
+    ],
+    "upvoteusers": [
+      "users_to_upvote"
+    ],
+	"redditAccounts": [
+      {
+	    "user": "your_user",
+	    "pass": "your_pass"
+      },
+      {
+        "user": "another_user",
+        "pass": "another_pass"
+      }
+    ]
+}
