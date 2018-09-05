@@ -55,7 +55,7 @@ the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it
 
 ### config fields
 
-**userAgent** - http user agent to send to reddit from client
+**useragent** - http user agent to send to reddit from client
 
 **datadir** - path to folder where you want to store database file(s)
 
@@ -71,13 +71,13 @@ the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it
 
 **upvoteusers** -- array containing user names to upvote if a post from them is found
 
-**redditAccounts** - array containing logins for the reddit accounts you wish to vote with
+**redditaccounts** - array containing logins for the reddit accounts you wish to vote with
 
 ### example config file
 
 ````
 {  
-   "userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15",
+   "useragent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15",
    "datadir":"data",
    "limit":100,
    "sleep":30,
@@ -99,7 +99,7 @@ the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it
       "users_to_upvote",
       "another_user"
    ],
-   "redditAccounts":[  
+   "redditaccounts":[  
       {  
          "user":"your_user",
          "pass":"your_pass"

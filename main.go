@@ -68,7 +68,7 @@ func main() {
 		log.Printf("[*] sleep timer: %d seconds", config.Sleep)
 		log.Printf("[*] logging in with %d different accounts", len(config.RedditAccounts))
 	}
-	
+
 	voter := NewVoter(db)
 
 	for {
