@@ -20,7 +20,7 @@ in the voter working directory (or wherever you wish to store it), e.g.
 
 ## usage
 You must create a configuration file and pass it in with the ``-c`` flag. See
-the ``example.config.json`` file for the required fields.
+the ``example.config.json`` file and documentation below for the required fields.
 
 ````
 Usage of ./voter:
@@ -50,3 +50,68 @@ Enable "hammer" mode, where every new comment (score of 1) is upvoted by someone
 the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it too.
 
 ``./voter -c yourconfig.json -h``
+
+## configuration
+
+### config fields
+
+**userAgent** - http user agent to send to reddit from client
+
+**datadir** - path to folder where you want to store database file(s)
+
+**limit** - limit the number of posts to retrieve each iteration. tune this to popularity of the target subreddit(s)
+
+**sleep** - number of seconds to rest between iterations of voting loop
+
+**ignores** - array containing user names to leave out of voting
+
+**subreddits** - array containing subreddit names to target
+
+**downvoteusers** - array containing user names to downvote if a post from them is found
+
+**upvoteusers** -- array containing user names to upvote if a post from them is found
+
+**redditAccounts** - array containing logins for the reddit accounts you wish to vote with
+
+### example config file
+
+````
+{  
+   "userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15",
+   "datadir":"data",
+   "limit":100,
+   "sleep":30,
+   "ignores":[  
+      "user_to_ignore",
+      "my_own_user_name",
+      "another_user"
+   ],
+   "subreddits":[  
+      "list",
+      "of",
+      "subreddit_names"
+   ],
+   "downvoteusers":[  
+      "users_to_downvote", 
+      "another_user"
+   ],
+   "upvoteusers":[  
+      "users_to_upvote",
+      "another_user"
+   ],
+   "redditAccounts":[  
+      {  
+         "user":"your_user",
+         "pass":"your_pass"
+      },
+      {  
+         "user":"another_user",
+         "pass":"another_pass"
+      },
+      {  
+         "user":"yet_another",
+         "pass":"yet_another_pass"
+      }
+   ]
+}
+````
