@@ -14,7 +14,9 @@ The first time you run the bot it will create a database file in the directory
 named by the "datadir" configuration variable. You will need to create this directory
 in the voter working directory (or wherever you wish to store it), e.g. 
 
-``$ mkdir $GOPATH/src/github.com/jpclark/voter/data`` 
+````
+$ mkdir $GOPATH/src/github.com/jpclark/voter/data
+```` 
 
 *note: this database tracks which posts have been voted on to prevent wasting vote requests* 
 
@@ -23,6 +25,7 @@ You must create a configuration file and pass it in with the ``-c`` flag. See
 the ``example.config.json`` file and documentation below for the required fields.
 
 ````
+$ ./voter -?
 Usage of ./voter:
   -c string
     	config file
@@ -36,20 +39,20 @@ Usage of ./voter:
 
 To run voter based on the upvote/downvote configuration in your config file:
 
-``./voter -c yourconfig.json``
+``$ ./voter -c yourconfig.json``
 
 Upvote every new comment and submission in the configured subreddit(s):
 
-``./voter -c yourconfig.json -ua``
+``$ ./voter -c yourconfig.json -ua``
 
 Downvote every new comment/submission in the configured subreddit(s):
 
-``./voter -c yourconfig.json -da``
+``$ ./voter -c yourconfig.json -da``
 
 Enable "hammer" mode, where every new comment (score of 1) is upvoted by someone,
 the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it too.
 
-``./voter -c yourconfig.json -h``
+``$ ./voter -c yourconfig.json -h``
 
 ## configuration
 
