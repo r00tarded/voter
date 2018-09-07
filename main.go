@@ -18,6 +18,7 @@ var (
 	oHammer      bool
 	oConfig      string
 	config       *Config
+	startTime    = time.Now()
 	tUpvotes     = 0 //total upvotes given out this session
 	tDownvotes   = 0 //total downvotes given out this session
 )
@@ -57,6 +58,7 @@ func main() {
 		log.Println("[*] shutting down")
 		log.Printf("[*] total upvotes given:   %d", tUpvotes)
 		log.Printf("[*] total downvotes given: %d", tDownvotes)
+		log.Printf("[*] total run time: %s", time.Since(startTime).String())
 		db.Close()
 		os.Exit(0)
 	}()
