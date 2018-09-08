@@ -37,7 +37,7 @@ Usage of ./voter:
   -v	enable verbose mode
 ````
 
-To run voter based on the upvote/downvote configuration in your config file:
+To run voter based on the subreddit and user configuration in your config file:
 
 ``$ ./voter -c yourconfig.json``
 
@@ -49,8 +49,12 @@ Downvote every new comment/submission in the configured subreddit(s):
 
 ``$ ./voter -c yourconfig.json -da``
 
-Enable "hammer" mode, where every new comment (score of 1) is upvoted by someone,
-the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it too.
+Vote on all comments and submissions from user names in config (regardless of subreddit):
+
+``$ ./voter -c yourconfig.json -vu``
+
+Enable "hammer" mode based on subreddit, where every new comment (score of 1) is upvoted by someone,
+the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it too:
 
 ``$ ./voter -c yourconfig.json -h``
 
@@ -70,9 +74,9 @@ the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it
 
 **subreddits** - array containing subreddit names to target
 
-**downvoteusers** - array containing user names to downvote if a post from them is found
+**downvoteusers** - array containing user names to downvote
 
-**upvoteusers** -- array containing user names to upvote if a post from them is found
+**upvoteusers** -- array containing user names to upvote
 
 **redditaccounts** - array containing logins for the reddit accounts you wish to vote with
 

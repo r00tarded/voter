@@ -55,11 +55,47 @@ func (v *Voter) LoadComments() {
 	v.dComments = nil
 	var err error
 	options := geddit.ListingOptions{Limit: config.Limit}
+	//handle vote-user mode
+	if oVoteUser {
+		for _, userName := range config.DownvoteUsers {
+			comments, err := v.sessions[0].RedditorComments(userName, options)
+			if err != nil {
+				log.Printf("[x] error reading comments for user %s: %s\n", userName, err)
+				continue
+			}
+			for _, comment := range comments {
+				v.dComments = append(v.dComments, comment)
+				if oVerbose {
+					log.Printf("[*] added comment in /r/%s from %s to the downvote queue\n",
+						comment.Subreddit, userName)
+				}
+			}
+		}
+
+		for _, userName := range config.UpvoteUsers {
+			comments, err := v.sessions[0].RedditorComments(userName, options)
+			if err != nil {
+				log.Printf("[x] error reading comments for user %s: %s\n", userName, err)
+				continue
+			}
+			for _, comment := range comments {
+				v.uComments = append(v.uComments, comment)
+				if oVerbose {
+					log.Printf("[*] added comment in /r/%s from %s to the upvote queue\n",
+						comment.Subreddit, userName)
+				}
+			}
+		}
+
+		return //skip the subreddit mode
+	}
+	//handle subreddit-specific mode
 	for _, subreddit := range config.Subreddits {
 		var comments []*geddit.Comment
 		comments, err = v.sessions[0].SubredditComments(subreddit, options)
 		if err != nil {
-			log.Printf("[x] error reading comments: %s\n", err)
+			log.Printf("[x] error reading comments for /r/%s: %s\n", subreddit, err)
+			continue
 		}
 
 		//check for up/downvote all flags
@@ -132,6 +168,41 @@ func (v *Voter) LoadSubmissions() {
 	v.uSubmissions = nil
 	v.dSubmissions = nil
 	options := geddit.ListingOptions{Limit: config.Limit}
+	//handle vote-user mode
+	if oVoteUser {
+		for _, userName := range config.DownvoteUsers {
+			submissions, err := v.sessions[0].RedditorSubmissions(userName, options)
+			if err != nil {
+				log.Printf("[x] error reading submissions for user %s: %s\n", userName, err)
+				continue
+			}
+			for _, submission := range submissions {
+				v.dSubmissions = append(v.dSubmissions, submission)
+				if oVerbose {
+					log.Printf("[*] added submission in /r/%s from %s to the downvote queue\n",
+						submission.Subreddit, userName)
+				}
+			}
+		}
+
+		for _, userName := range config.UpvoteUsers {
+			submissions, err := v.sessions[0].RedditorSubmissions(userName, options)
+			if err != nil {
+				log.Printf("[x] error reading submissions for user %s: %s\n", userName, err)
+				continue
+			}
+			for _, submission := range submissions {
+				v.uSubmissions = append(v.uSubmissions, submission)
+				if oVerbose {
+					log.Printf("[*] added submission in /r/%s from %s to the upvote queue\n",
+						submission.Subreddit, userName)
+				}
+			}
+		}
+
+		return //skip the subreddit mode
+	}
+	//handle subreddit-driven mode
 	for _, subreddit := range config.Subreddits {
 		submissions, err := v.sessions[0].SubredditSubmissions(subreddit, geddit.DefaultPopularity, options)
 		if err != nil {

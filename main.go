@@ -15,6 +15,7 @@ var (
 	oVerbose     bool
 	oUpvoteAll   bool
 	oDownvoteAll bool
+	oVoteUser    bool
 	oHammer      bool
 	oConfig      string
 	config       *Config
@@ -27,9 +28,10 @@ func init() {
 	rand.Seed(time.Now().Unix())
 	flag.StringVar(&oConfig, "c", "", "config file")
 	flag.BoolVar(&oVerbose, "v", false, "enable verbose mode")
-	flag.BoolVar(&oUpvoteAll, "ua", false, "upvote everything found in scan")
-	flag.BoolVar(&oDownvoteAll, "da", false, "downvote everything found in scan")
+	flag.BoolVar(&oUpvoteAll, "ua", false, "upvote everything found in configured subreddits")
+	flag.BoolVar(&oDownvoteAll, "da", false, "downvote everything found in configured subreddits")
 	flag.BoolVar(&oHammer, "h", false, "enables hammer mode")
+	flag.BoolVar(&oVoteUser, "vu", false, "upvote/downvote everything by users in config")
 	flag.Parse()
 
 	if oConfig == "" {
