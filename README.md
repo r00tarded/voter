@@ -30,11 +30,13 @@ Usage of ./voter:
   -c string
     	config file
   -da
-    	downvote everything found in scan
+    	downvote everything found in configured subreddits
   -h	enables hammer mode
   -ua
-    	upvote everything found in scan
+    	upvote everything found in configured subreddits
   -v	enable verbose mode
+  -vu
+    	upvote/downvote everything by users in config
 ````
 
 To run voter based on the subreddit and user configuration in your config file:
