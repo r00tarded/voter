@@ -39,21 +39,34 @@ Usage of ./voter:
     	upvote/downvote everything by users in config
 ````
 
-To run voter based on the subreddit and user configuration in your config file:
+###default mode
+
+This runs the voter based on the subreddit and user configuration in your config file.
+The voter will upvote/downvote users in the user lists, but only if they are found in
+the configured subreddits.
 
 ``$ ./voter -c yourconfig.json``
 
-Upvote every new comment and submission in the configured subreddit(s):
+###upvote everything in given subreddit
+
+Upvote every new comment and submission in the configured subreddit(s). The **limit**
+configuration property is important to configure if using this mode.
 
 ``$ ./voter -c yourconfig.json -ua``
 
-Downvote every new comment/submission in the configured subreddit(s):
+###downvote everything in given subreddit
+
+Downvote every new comment/submission in the configured subreddit(s).
 
 ``$ ./voter -c yourconfig.json -da``
 
-Vote on all comments and submissions from user names in config (regardless of subreddit):
+###vote on everything posted by given user(s)
+
+Vote on all comments and submissions from user names in config (regardless of subreddit).
 
 ``$ ./voter -c yourconfig.json -vu``
+
+###smash votes with a hammer
 
 Enable "hammer" mode based on subreddit, where every new comment (score of 1) is upvoted by someone,
 the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it too:
