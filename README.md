@@ -1,6 +1,6 @@
 # voter
 
-Vote bot for reddit.
+Vote bot for Reddit. Efficiently vote by subreddit, user name and keyword filters.
 
 ## build
 
