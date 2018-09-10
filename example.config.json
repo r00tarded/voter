@@ -22,14 +22,20 @@
     "another_user"
   ],
   "upvotekeywords":[
-    "keywords",
-    "to look for",
-    "and upvote"
+    " case insensitive ",
+    " keyword ",
+	" or ",
+    " keywords ",
+    " to look for ",
+    " and upvote "
   ],
   "downvotekeywords":[
-    "keywords",
-    "to look for",
-    "and downvote"
+    " case insensitive ",
+    " keyword ",
+	" or ",
+    " keywords ",
+    " to look for ",
+    " and downvote "
   ],
   "redditaccounts":[
     {

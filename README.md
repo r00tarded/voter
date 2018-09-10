@@ -32,6 +32,7 @@ Usage of ./voter:
   -da
     	downvote everything found in configured subreddits
   -h	enables hammer mode
+  -k	upvote/downvote posts in subreddits based on keywords
   -ua
     	upvote everything found in configured subreddits
   -v	enable verbose mode
@@ -46,6 +47,13 @@ The voter will upvote/downvote users in the user lists, but only if they are fou
 the configured subreddits.
 
 ``$ ./voter -c yourconfig.json``
+
+### upvote/downvote by keywords
+
+This uses the *upvotekeywords* and *downvotekeywords* configuration to search through
+the configured *subreddits* for comments and posts containing the given keywords.
+
+``$ ./voter -c yourconfig.json -k``
 
 ### upvote everything in given subreddit
 
@@ -89,6 +97,10 @@ the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it
 
 **subreddits** - array containing subreddit names to target
 
+**upvotekeywords** - array containing keywords to search for and upvote
+
+**downvotekeywords** - array containing keywords to search for and downvote
+
 **downvoteusers** - array containing user names to downvote
 
 **upvoteusers** -- array containing user names to upvote
@@ -98,42 +110,58 @@ the bot upvotes it as well. If a new comment gets downvoted the bot downvotes it
 ### example config file
 
 ````
-{  
-   "useragent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15",
-   "datadir":"data",
-   "limit":100,
-   "sleep":30,
-   "ignores":[  
-      "user_to_ignore",
-      "my_own_user_name",
-      "another_user"
-   ],
-   "subreddits":[  
-      "list",
-      "of",
-      "subreddit_names"
-   ],
-   "downvoteusers":[  
-      "users_to_downvote", 
-      "another_user"
-   ],
-   "upvoteusers":[  
-      "users_to_upvote",
-      "another_user"
-   ],
-   "redditaccounts":[  
-      {  
-         "user":"your_user",
-         "pass":"your_pass"
-      },
-      {  
-         "user":"another_user",
-         "pass":"another_pass"
-      },
-      {  
-         "user":"yet_another",
-         "pass":"yet_another_pass"
-      }
-   ]
+{
+  "useragent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15",
+  "datadir":"data",
+  "limit":100,
+  "sleep":30,
+  "ignores":[
+    "user_to_ignore",
+    "my_own_user_name",
+    "another_user"
+  ],
+  "subreddits":[
+    "list",
+    "of",
+    "subreddit_names"
+  ],
+  "downvoteusers":[
+    "users_to_downvote",
+    "another_user"
+  ],
+  "upvoteusers":[
+    "users_to_upvote",
+    "another_user"
+  ],
+  "upvotekeywords":[
+    " case insensitive ",
+    " keyword ",
+	" or ",
+    " keywords ",
+    " to look for ",
+    " and upvote "
+  ],
+  "downvotekeywords":[
+    " case insensitive ",
+    " keyword ",
+	" or ",
+    " keywords ",
+    " to look for ",
+    " and downvote "
+  ],
+  "redditaccounts":[
+    {
+      "user":"your_user",
+      "pass":"your_pass"
+    },
+    {
+      "user":"another_user",
+      "pass":"another_pass"
+    },
+    {
+      "user":"yet_another",
+      "pass":"yet_another_pass"
+    }
+  ]
 }
 ````
