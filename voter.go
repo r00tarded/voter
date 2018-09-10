@@ -4,6 +4,7 @@ import (
 	"github.com/jzelinskie/geddit"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -96,6 +97,24 @@ func (v *Voter) LoadComments() {
 		if err != nil {
 			log.Printf("[x] error reading comments for /r/%s: %s\n", subreddit, err)
 			continue
+		}
+
+		//check for keyword mode
+		if oKeyword {
+			for _, comment := range comments {
+				if containsKeywords(comment.Body, config.UpvoteKeywords) {
+					if oVerbose {
+						log.Println("[*] adding comment based on keyword to upvote queue")
+					}
+					v.uComments = append(v.uComments, comment)
+				} else if containsKeywords(comment.Body, config.DownvoteKeywords) {
+					if oVerbose {
+						log.Println("[*] adding comment based on keyword to downvote queue")
+					}
+					v.dComments = append(v.dComments, comment)
+				}
+			}
+			continue //continue to next subreddit
 		}
 
 		//check for up/downvote all flags
@@ -207,6 +226,24 @@ func (v *Voter) LoadSubmissions() {
 		submissions, err := v.sessions[0].SubredditSubmissions(subreddit, geddit.DefaultPopularity, options)
 		if err != nil {
 			log.Printf("[x] error reading submissions: %s\n", err)
+		}
+
+		//check for keyword mode
+		if oKeyword {
+			for _, submission := range submissions {
+				if containsKeywords(submission.Selftext, config.UpvoteKeywords) {
+					if oVerbose {
+						log.Println("[*] adding submission based on keyword to upvote queue")
+					}
+					v.uSubmissions = append(v.uSubmissions, submission)
+				} else if containsKeywords(submission.Selftext, config.DownvoteKeywords) {
+					if oVerbose {
+						log.Println("[*] adding submission based on keyword to downvote queue")
+					}
+					v.dSubmissions = append(v.dSubmissions, submission)
+				}
+			}
+			continue //continue to next subreddit
 		}
 
 		if oUpvoteAll {
@@ -377,6 +414,25 @@ func downvoteComment(acctName string, session *geddit.LoginSession, comment *ged
 func isIgnored(user string) bool {
 	for _, ign := range config.Ignores {
 		if strings.EqualFold(user, ign) {
+			return true
+		}
+	}
+	return false
+}
+
+//Check the given text for list of keywords
+func containsKeywords(text string, keywords []string) bool {
+	if text == "" {
+		return false
+	}
+	t := strings.ToUpper(text)
+	for _, keyword := range keywords {
+		k := strings.ToUpper(keyword)
+		matched, err := regexp.MatchString(".*"+k+".*", t)
+		if err != nil {
+			log.Printf("[x] error searching for keyword %s: %s\n", keyword, err)
+		}
+		if matched {
 			return true
 		}
 	}

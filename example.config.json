@@ -21,6 +21,16 @@
     "users_to_upvote",
     "another_user"
   ],
+  "upvotekeywords":[
+    "keywords",
+    "to look for",
+    "and upvote"
+  ],
+  "downvotekeywords":[
+    "keywords",
+    "to look for",
+    "and downvote"
+  ],
   "redditaccounts":[
     {
       "user":"your_user",

@@ -17,6 +17,7 @@ var (
 	oDownvoteAll bool
 	oVoteUser    bool
 	oHammer      bool
+	oKeyword     bool
 	oConfig      string
 	config       *Config
 	startTime    = time.Now()
@@ -32,6 +33,7 @@ func init() {
 	flag.BoolVar(&oDownvoteAll, "da", false, "downvote everything found in configured subreddits")
 	flag.BoolVar(&oHammer, "h", false, "enables hammer mode")
 	flag.BoolVar(&oVoteUser, "vu", false, "upvote/downvote everything by users in config")
+	flag.BoolVar(&oKeyword, "k", false, "upvote/downvote posts in subreddits based on keywords")
 	flag.Parse()
 
 	if oConfig == "" {
